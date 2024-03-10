@@ -1,4 +1,13 @@
-# intro.Rmd - Datei
+---
+title: "intro.Rmd" 
+author: "Konstantin"
+date: "2024-03-10" (Erstellungsdatum)
+output: 
+        pdf_document: default
+        html_notebook: default
+
+---
+# Functions 
 
 ```{r}
 
