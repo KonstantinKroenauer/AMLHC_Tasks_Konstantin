@@ -1,0 +1,15 @@
+# intro.Rmd - Datei
+
+```{r}
+
+sayHello <- function(name) {
+  # Function to greet
+  paste("Hallo", name, "!", sep=" ")
+}
+
+```
+```{r}
+# Call the function
+greeting <- sayHello("Konstantin")
+print(greeting)
+```
