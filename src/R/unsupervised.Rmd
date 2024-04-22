@@ -1,0 +1,73 @@
+---
+title: "Unsupervised learning"
+output: html_notebook
+---
+
+
+# Unsupervised Learning
+
+```{r}
+  require("clusterCrit")
+  require("gplots")
+  require("fpc")
+
+```
+
+
+## Load and scale data
+
+```{r}
+  food_data <- read.csv("food.csv", row.names=1)
+  fds <- scale(food_data)
+```
+
+
+## Clustering
+
+```{r}
+  
+  for(k in 2:5){
+    
+  set.seed(123)
+  kmc <- kmeans(fds,k)
+  ci <- intCriteria(fds, kmc$cluster, "Silhouette")
+  ci
+    print(ci)
+    
+  }
+    
+```
+
+## PCA andVisualization
+
+```{r}
+  pca <- princomp(fds)
+
+  data_red <- pca$scores[,1:2]
+  data_red <- data_red * -1
+  plot(data_red[,"Comp.1"], data_red[,"Comp.2"], col=kmc$cluster)
+  text(data_red[,"Comp.1"], data_red[,"Comp.2"], labels=rownames(fds), cex=0.5) 
+
+
+```
+## Hierachical Clustering
+
+```{r}
+  hcf <- hclust(dist(fds))
+  plot(hcf)
+```
+```{r}
+heatmap.2(fds, scale="none") 
+
+```
+
+## Destiny based clustering
+
+```{r}
+  dbc <- dbscan(fds, eps=2, MinPts = 3)
+  plot(data_red[,"Comp.1"], data_red[,"Comp.2"], col=dbc$cluster)
+  text(data_red[,"Comp.1"], data_red[,"Comp.2"], labels=rownames(fds), cex=0.5)
+
+```
+
+
