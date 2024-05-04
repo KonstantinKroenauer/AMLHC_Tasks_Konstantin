@@ -1,0 +1,55 @@
+---
+title: "Supervised Learning"
+output: html_notebook
+---
+
+## Regression
+
+```{r}
+
+  heart_data <- read.csv("heartdata.csv", row.names = 1)
+  cor(heart_data$biking, heart_data$smoking)
+  plot(heart_data$biking, heart_data$smoking)
+  hist(heart_data$heartdisease)
+
+```
+
+```{r}
+
+plot(heartdisease ~ biking, data=heart_data)
+
+```
+```{r}
+
+  hd_lm <- lm(heartdisease ~ biking + smoking, data=heart_data)
+  hd_lm
+  
+```
+```{r}
+
+  par(mfrow=c(2,2))
+  plot(hd_lm)
+  
+```
+```{r}
+
+  fitControl <- trainControl(
+                            method = "repeatedcv",
+                            number = 10)
+  lmFit <- train(heartdisease ~ ., data=heart_data, method="lm", trControl=fitControl, preProc=c("center", "scale"))
+  lmFit
+
+```
+
+# Classification
+
+```{r}
+
+  diabetes_data <- read.csv("C:\\Users\\tinok\\Downloads\\diabetes.csv")
+  diaFit <- glm(class ~ ., data=diabetes_data, family="binomial")
+  glmFit <- train(class ~ ., diabetes_data, method="glm", trControl=fitControl, preProc=c("center", "scale"))
+```
+
+
+
+
