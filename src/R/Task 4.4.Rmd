@@ -1,0 +1,51 @@
+---
+title: "Task 4.4"
+output: html_notebook
+---
+
+```{r}
+  require(foreign)
+  require(caret)
+```
+
+
+## Supervised Learning - Regression and hyperparameter tuning
+
+
+```{r}
+  data(cox2)
+  head(bbbDescr)
+  
+  X <- bbbDescr
+  y <- logBBB
+```
+
+### Split dataset into training and test set
+```{r}
+  inTrain <- createDataPartition(y, p=0.75, list = FALSE)
+  
+  X_train <- X[inTrain,]
+  y_train <- y[inTrain]
+  x_test <- X[inTrain,]
+  y_test <- y[-inTrain]
+```
+
+
+### Train the model
+
+```{r}
+  featVar <- apply(X_train,2,var)
+```
+
+
+```{r}
+  trControl <- trainControl(method="cv", number=10)
+  model_rf <- train(X_train, y_train, method="rf", preProcess=c("center", "scale"), trainControl=trControl)
+  model_rf
+```
+
+
+```{r}
+  vi <- varImp(model_rf)
+  plot(vi)
+```
