@@ -16,7 +16,7 @@ library(tidyverse)
 
 # Read data and start preprocessing
 ```{r}
-  data <- read.csv("D:/Uni/Github/Modul12/AMLHC_Tasks_Konstantin/AMLHC-final-exam/ckd-dataset.csv")
+  data <- read.csv("ckd-dataset.csv")
  #Entfernung
   data <- na.omit(data)
   #Imputation
