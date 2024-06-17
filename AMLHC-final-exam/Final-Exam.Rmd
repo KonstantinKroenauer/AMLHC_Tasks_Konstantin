@@ -36,7 +36,36 @@ library(tidyverse)
   numerical_features <- sapply(data, is.numeric) & !sapply(data, is.factor)
 
   data[numerical_features] <- scale(data[numerical_features])
-
+  
+categorical_features <- sapply(data, is.character)
+ for (col in categorical_features) {
+     if (col) {
+         data[[col]] <- factor(data[[col]])
+     }
+ }
+ 
+ # `numerical_strings` 
+ numerical_strings <- sapply(data, is.character) & sapply(data, is.numeric)
+ for (col in numerical_strings) {
+     if (col) {
+         data[[col]] <- as.numeric(as.character(data[[col]]))
+     }
+ }
+ 
+ # Imputation mit Mittelwert
+ data_imputed <- data
+ for (col in sapply(data, is.numeric)) {
+     if (col) {
+         data_imputed[[col]][is.na(data_imputed[[col]])] <- mean(data_imputed[[col]], na.rm = TRUE)
+     }
+ }
+ 
+ # Identifizierung von kategoriale Variablen
+ categorical_features <- sapply(data, is.factor)
+ 
+ # Skalierung von numerischer Variablen
+ numerical_features <- sapply(data, is.numeric) & !sapply(data, is.factor)
+ data_scaled <- scale(data[numerical_features])
 
 ```
 
