@@ -3,69 +3,128 @@ title: "Final Exam"
 output: html_notebook
 ---
 
- # Load libarys
-```{r}
+Install necessary packages
 
-library(caret)
-library(ggplot2)
-library(stringr)
-library(tidyverse)
+```{r}
+  if (!require(rpart.plot)) install.packages("rpart.plot", dependencies=TRUE)
+  if (!require(caret)) install.packages("caret", dependencies=TRUE)
+  if (!require(tidyverse)) install.packages("tidyverse", dependencies=TRUE)
+  
+  library(caret)
+  library(ggplot2)
+  library(stringr)
+  library(tidyverse)
+  library(rpart)
+  library(rpart.plot)
+  library(e1071)
+
 
 ```
 
 
-# Read data and start preprocessing
+Read data and start preprocessing
 ```{r}
-  data <- read.csv("ckd-dataset.csv")
- #Entfernung
-  data <- na.omit(data)
-  #Imputation
-  data[is.na(data$variable)] <- median(data$variable)
-  
-  #Kategoriale Merkmale codieren
-  categorical_features <- sapply(data, is.factor)
-  
-  #Umwandlungkategoriale Merkmale in nummerische Werte
-  for (col in categorical_features) {
-  if (col) {
-    data[[col]] <- as.numeric(factor(data[[col]]))
-    }
-  }
+# Read the dataset
+data <- read.csv("ckd-dataset.csv")
 
-  #Skalierung
-  numerical_features <- sapply(data, is.numeric) & !sapply(data, is.factor)
+# Display the first few rows of the dataset
+head(data)
 
-  data[numerical_features] <- scale(data[numerical_features])
+# Remove rows with missing values
+data <- na.omit(data)
+
+# Convert all features to factors
+data <- data %>% mutate(across(everything(), as.factor))
+
+# Ensure the target variable 'class' is a factor
+if (!is.factor(data$class)) {
+  data$class <- as.factor(data$class)
+}
+
+# Remove rare classes
+rare_classes <- names(which(table(data$class) < 2))
+data <- data[!data$class %in% rare_classes, ]
+
+# Verify the structure of the dataset
+str(data)
+
+
+```
+
+
+
+```{r}
+
+    
   
-categorical_features <- sapply(data, is.character)
- for (col in categorical_features) {
-     if (col) {
-         data[[col]] <- factor(data[[col]])
-     }
- }
- 
- # `numerical_strings` 
- numerical_strings <- sapply(data, is.character) & sapply(data, is.numeric)
- for (col in numerical_strings) {
-     if (col) {
-         data[[col]] <- as.numeric(as.character(data[[col]]))
-     }
- }
- 
- # Imputation mit Mittelwert
- data_imputed <- data
- for (col in sapply(data, is.numeric)) {
-     if (col) {
-         data_imputed[[col]][is.na(data_imputed[[col]])] <- mean(data_imputed[[col]], na.rm = TRUE)
-     }
- }
- 
- # Identifizierung von kategoriale Variablen
- categorical_features <- sapply(data, is.factor)
- 
- # Skalierung von numerischer Variablen
- numerical_features <- sapply(data, is.numeric) & !sapply(data, is.factor)
- data_scaled <- scale(data[numerical_features])
+ set.seed(123)
+ trainIndex <- createDataPartition(data$class, p = .8, 
+                                  list = FALSE, 
+                                  times = 1)
+ dataTrain <- data[ trainIndex,]
+ dataTest  <- data[-trainIndex,]
+
+```
+
+
+```{r}
+
+model <- rpart(class ~ ., data = dataTrain, method = "class")
+
+# Plot the decision tree
+rpart.plot(model)
+
+
+```
+
+
+```{r}
+
+predictions <- predict(model, dataTest, type = "class")
+
+# Confusion matrix
+confusionMatrix(predictions, dataTest$class)
+
+
+
+```
+
+
+
+```{r}
+
+
+# Calculate accuracy
+accuracy <- sum(predictions == dataTest$class) / nrow(dataTest)
+print(paste("Accuracy:", round(accuracy, 4)))
+
+# Print confusion matrix
+confMat <- confusionMatrix(predictions, dataTest$class)
+print(confMat)
+
+
+
+```
+
+
+
+```{r}
+
+
+## Discussion and Interpretation
+
+In dieser Studie haben wir ein Entscheidungsbaum-Modell entwickelt, um das Risiko einer chronischen Nierenerkrankung anhand der vorgegebenen Merkmale vorherzusagen. Alle Merkmale wurden als kategoriale Variablen behandelt, um dem Feedback des Professors zu entsprechen.
+
+### Modellergebnisse
+Die Genauigkeit des Modells beträgt `r round(accuracy, 4)`. Die Verwirrungsmatrix zeigt die Leistung des Modells bei der Vorhersage der Zielvariable auf dem Testdatensatz.
+
+### Interpretation
+Das Entscheidungsbaum-Modell bietet eine visuell interpretierbare Methode zur Identifizierung von Risikofaktoren für chronische Nierenerkrankungen. Jede Verzweigung im Baum repräsentiert eine Entscheidung auf Basis eines Merkmalswerts, was es einfach macht, die Entscheidungswege nachzuvollziehen.
+
+### Schlussfolgerungen
+Dieses Modell kann nützlich sein, um potenzielle Risikopatienten zu identifizieren und präventive Maßnahmen zu ergreifen. Weitere Schritte könnten die Validierung des Modells auf größeren und vielfältigeren Datensätzen sowie die Untersuchung anderer Modellierungstechniken umfassen.
+
+
 
 ```
 
