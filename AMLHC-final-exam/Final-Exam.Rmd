@@ -36,33 +36,26 @@ data <- na.omit(data)
 # Convert all features to factors
 data <- data %>% mutate(across(everything(), as.factor))
 
-# Ensure the target variable 'class' is a factor
-if (!is.factor(data$class)) {
-  data$class <- as.factor(data$class)
-}
-
-# Remove rare classes
-rare_classes <- names(which(table(data$class) < 2))
-data <- data[!data$class %in% rare_classes, ]
+# Remove empty and rare classes
+## Was mach der Befehl?: data <- data[!data$class %in% c("", "discrete"), ]
 
 # Verify the structure of the dataset
 str(data)
-
+summary(data)
+table(data$class)
 
 ```
 
 
 
 ```{r}
-
+#Split the data into training and testing sets
     
-  
- set.seed(123)
- trainIndex <- createDataPartition(data$class, p = .8, 
-                                  list = FALSE, 
-                                  times = 1)
- dataTrain <- data[ trainIndex,]
- dataTest  <- data[-trainIndex,]
+set.seed(123)
+trainIndex <- createDataPartition(data$class, p = .8, list = FALSE, times = 1)
+
+dataTrain <- data[trainIndex, ]
+dataTest <- data[-trainIndex, ]
 
 ```
 
@@ -81,15 +74,18 @@ rpart.plot(model)
 ```{r}
 
 predictions <- predict(model, dataTest, type = "class")
+predictions <- droplevels(predictions)
+dataTest$class <- factor(dataTest$class, levels = c("ckd", "notckd"))
+levels(dataTest$class)
+
+
 
 # Confusion matrix
-confusionMatrix(predictions, dataTest$class)
-
+confMatrix <- confusionMatrix(predictions, dataTest$class)
+print(confMatrix)
 
 
 ```
-
-
 
 ```{r}
 
@@ -98,35 +94,7 @@ confusionMatrix(predictions, dataTest$class)
 accuracy <- sum(predictions == dataTest$class) / nrow(dataTest)
 print(paste("Accuracy:", round(accuracy, 4)))
 
-# Print confusion matrix
-confMat <- confusionMatrix(predictions, dataTest$class)
-print(confMat)
 
 
 
 ```
-
-
-
-```{r}
-
-
-## Discussion and Interpretation
-
-In dieser Studie haben wir ein Entscheidungsbaum-Modell entwickelt, um das Risiko einer chronischen Nierenerkrankung anhand der vorgegebenen Merkmale vorherzusagen. Alle Merkmale wurden als kategoriale Variablen behandelt, um dem Feedback des Professors zu entsprechen.
-
-### Modellergebnisse
-Die Genauigkeit des Modells beträgt `r round(accuracy, 4)`. Die Verwirrungsmatrix zeigt die Leistung des Modells bei der Vorhersage der Zielvariable auf dem Testdatensatz.
-
-### Interpretation
-Das Entscheidungsbaum-Modell bietet eine visuell interpretierbare Methode zur Identifizierung von Risikofaktoren für chronische Nierenerkrankungen. Jede Verzweigung im Baum repräsentiert eine Entscheidung auf Basis eines Merkmalswerts, was es einfach macht, die Entscheidungswege nachzuvollziehen.
-
-### Schlussfolgerungen
-Dieses Modell kann nützlich sein, um potenzielle Risikopatienten zu identifizieren und präventive Maßnahmen zu ergreifen. Weitere Schritte könnten die Validierung des Modells auf größeren und vielfältigeren Datensätzen sowie die Untersuchung anderer Modellierungstechniken umfassen.
-
-
-
-```
-
-
-
