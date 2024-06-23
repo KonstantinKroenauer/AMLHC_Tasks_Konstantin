@@ -1,9 +1,24 @@
 ---
 title: "Final Exam"
+author: "Konstantin Krönauer"
+date: "23-June-2024"
 output: html_notebook
 ---
 
-Install necessary packages
+# Introduction
+
+Chronic Kidney Disease (CKD) is a critical public health issue that affects millions of people worldwide. Early detection and management of CKD can significantly improve patient outcomes. This project aims to develop a predictive model to classify patients as having CKD or not based on various clinical features.
+
+# Data Description
+
+The dataset used for this project contains clinical features and laboratory results of patients. The primary objective is to classify patients into two categories: CKD and not CKD.
+
+## Data Preprocessing
+
+Before training the model, several preprocessing steps were performed:
+- Handling missing values by removing rows with missing data.
+- Converting all features to factors to facilitate modeling with a decision tree.
+- Removing empty and rare classes to ensure the model's robustness.
 
 ```{r}
   if (!require(rpart.plot)) install.packages("rpart.plot", dependencies=TRUE)
@@ -19,11 +34,6 @@ Install necessary packages
   library(e1071)
 
 
-```
-
-
-Read data and start preprocessing
-```{r}
 # Read the dataset
 data <- read.csv("ckd-dataset.csv")
 
@@ -37,16 +47,16 @@ data <- na.omit(data)
 data <- data %>% mutate(across(everything(), as.factor))
 
 # Remove empty and rare classes
-## Was mach der Befehl?: data <- data[!data$class %in% c("", "discrete"), ]
+data <- data[!data$class %in% c("", "discrete"), ]
 
 # Verify the structure of the dataset
 str(data)
-summary(data)
-table(data$class)
 
 ```
 
+# Model Training
 
+Decision tree model to predict CKD status. The dataset was split into training (80%) and testing (20%) sets
 
 ```{r}
 #Split the data into training and testing sets
@@ -57,44 +67,67 @@ trainIndex <- createDataPartition(data$class, p = .8, list = FALSE, times = 1)
 dataTrain <- data[trainIndex, ]
 dataTest <- data[-trainIndex, ]
 
-```
-
-
-```{r}
-
+#Train the model
 model <- rpart(class ~ ., data = dataTrain, method = "class")
 
 # Plot the decision tree
 rpart.plot(model)
 
-
 ```
 
+# Model Evaluation
+The model's performance was evaluated using the test set. The confusion matrix and accuracy metrics were used to assess the model's performance.
 
 ```{r}
 
+# Make predictions
 predictions <- predict(model, dataTest, type = "class")
 predictions <- droplevels(predictions)
 dataTest$class <- factor(dataTest$class, levels = c("ckd", "notckd"))
-levels(dataTest$class)
-
-
 
 # Confusion matrix
 confMatrix <- confusionMatrix(predictions, dataTest$class)
 print(confMatrix)
-
-
-```
-
-```{r}
-
 
 # Calculate accuracy
 accuracy <- sum(predictions == dataTest$class) / nrow(dataTest)
 print(paste("Accuracy:", round(accuracy, 4)))
 
 
+```
+
+The model achieved an accuracy of 100%, indicating perfect classification on the test set. The confusion matrix further confirmed this with all instances correctly classified.
+
+# Feature Importance
+The importance of each feature in predicting CKD was analyzed. The top features contributing to the model's predictions were affected, hemo, pcv, stage, grf, and rbcc.
+
+```{r}
+
+
+var_importance <- varImp(model)
+print(var_importance)
+plot(var_importance)
+
+# Variable importance directly from rpart model
+importance <- model$variable.importance
+print(importance)
+barplot(importance, main = "Variable Importance", col = "lightblue", las = 2)
 
 
 ```
+
+Interpretation of Findings
+The decision tree model indicates that the most critical factors for predicting CKD are:
+
+affected: Overall health status.
+hemo: Hemoglobin levels.
+pcv: Packed cell volume.
+stage: Stage of CKD.
+grf: Glomerular filtration rate.
+rbcc: Red blood cell count.
+These findings align with medical knowledge, where hemoglobin levels, packed cell volume, and glomerular filtration rate are significant indicators of kidney function.
+
+Conclusion
+The decision tree model developed in this project accurately classifies patients with CKD based on clinical features. The model's high accuracy suggests it can be a valuable tool for early CKD detection. Future work could involve validating the model on a larger, more diverse dataset and exploring other machine learning algorithms for potentially improved performance.
+
+This analysis underscores the importance of regular monitoring of kidney function and related clinical parameters in at-risk populations.
