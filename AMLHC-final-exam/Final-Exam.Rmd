@@ -1,24 +1,31 @@
 ---
-title: "Final Exam"
+title: "Analyse zur Vorhersage chronischer Nierenerkrankungen"
 author: "Konstantin Krönauer"
 date: "23-June-2024"
 output: html_notebook
 ---
 
-# Introduction
 
-Chronic Kidney Disease (CKD) is a critical public health issue that affects millions of people worldwide. Early detection and management of CKD can significantly improve patient outcomes. This project aims to develop a predictive model to classify patients as having CKD or not based on various clinical features.
+# Einleitung
 
-# Data Description
+Chronische Nierenerkrankung (CKD) ist ein bedeutendes Gesundheitsproblem weltweit. Diese Studie zielt darauf ab, ein Modell zu entwickeln, um das Risiko einer CKD anhand klinischer Merkmale vorherzusagen.
 
-The dataset used for this project contains clinical features and laboratory results of patients. The primary objective is to classify patients into two categories: CKD and not CKD.
+## Forschungsfrage
 
-## Data Preprocessing
+Kann ein Modell entwickelt werden, um das Risiko einer chronischen Nierenerkrankung anhand der vorgegebenen Merkmale vorherzusagen?
 
-Before training the model, several preprocessing steps were performed:
-- Handling missing values by removing rows with missing data.
-- Converting all features to factors to facilitate modeling with a decision tree.
-- Removing empty and rare classes to ensure the model's robustness.
+
+## Datenbeschreibung
+
+Das verwendete Datenset enthält klinische Merkmale und Laborergebnisse von Patienten. Das Hauptziel ist die Klassifizierung der Patienten in zwei Kategorien: CKD und nicht CKD.
+
+### Daten-Vorverarbeitung
+
+Vor der Modellerstellung wurden mehrere Vorverarbeitungsschritte durchgeführt:
+
+- Behandlung von fehlenden Werten durch Entfernen der entsprechenden Datensätze.
+- Konvertierung aller Merkmale in Faktoren für die Modellierung mit einem Entscheidungsbaum.
+- Entfernen leerer und seltener Klassen, um die Robustheit des Modells zu gewährleisten.
 
 ```{r}
   if (!require(rpart.plot)) install.packages("rpart.plot", dependencies=TRUE)
@@ -54,12 +61,13 @@ str(data)
 
 ```
 
-# Model Training
+## Modellbildung
 
-Decision tree model to predict CKD status. The dataset was split into training (80%) and testing (20%) sets
+Ein Entscheidungsbaummodell wurde verwendet, um die CKD-Status vorherzusagen. Die Daten wurden in Trainings- (80%) und Testsets (20%) aufgeteilt.
 
 ```{r}
-#Split the data into training and testing sets
+
+# Modellbildung mit Entscheidungsbaum
     
 set.seed(123)
 trainIndex <- createDataPartition(data$class, p = .8, list = FALSE, times = 1)
@@ -67,29 +75,30 @@ trainIndex <- createDataPartition(data$class, p = .8, list = FALSE, times = 1)
 dataTrain <- data[trainIndex, ]
 dataTest <- data[-trainIndex, ]
 
-#Train the model
+
 model <- rpart(class ~ ., data = dataTrain, method = "class")
 
-# Plot the decision tree
+# Visualisierung des Entscheidungsbaums
 rpart.plot(model)
 
 ```
 
-# Model Evaluation
-The model's performance was evaluated using the test set. The confusion matrix and accuracy metrics were used to assess the model's performance.
+## Modell Evaluation
+
+Die Leistung des Modells wurde mit einem Testdatensatz ausgewertet.
 
 ```{r}
 
-# Make predictions
+# Vorhersage machen
 predictions <- predict(model, dataTest, type = "class")
 predictions <- droplevels(predictions)
 dataTest$class <- factor(dataTest$class, levels = c("ckd", "notckd"))
 
-# Confusion matrix
+# Konfusionsmatrix
 confMatrix <- confusionMatrix(predictions, dataTest$class)
 print(confMatrix)
 
-# Calculate accuracy
+# Berechnung der Genauigkeit
 accuracy <- sum(predictions == dataTest$class) / nrow(dataTest)
 print(paste("Accuracy:", round(accuracy, 4)))
 
@@ -98,15 +107,18 @@ print(paste("Accuracy:", round(accuracy, 4)))
 
 The model achieved an accuracy of 100%, indicating perfect classification on the test set. The confusion matrix further confirmed this with all instances correctly classified.
 
-# Feature Importance
-The importance of each feature in predicting CKD was analyzed. The top features contributing to the model's predictions were affected, hemo, pcv, stage, grf, and rbcc.
+
+## Variable Importance
+
+Die folgenden Merkmale tragen am meisten zur Vorhersage der CKD bei:
 
 ```{r}
 
 
-var_importance <- varImp(model)
+vvar_importance <- varImp(model)
 print(var_importance)
 plot(var_importance)
+
 
 # Variable importance directly from rpart model
 importance <- model$variable.importance
@@ -114,10 +126,20 @@ print(importance)
 barplot(importance, main = "Variable Importance", col = "lightblue", las = 2)
 
 
+
+
+
+var_importance_df <- data.frame(
+  Feature = rownames(var_importance$importance),
+  Importance = var_importance$importance[, 1]
+)
+
+
 ```
 
-Interpretation of Findings
-The decision tree model indicates that the most critical factors for predicting CKD are:
+## Interpretation der Ergebnisse
+
+Das entwickelte Entscheidungsbaummodell kann effektiv genutzt werden, um das Risiko einer chronischen Nierenerkrankung anhand der vorgegebenen Merkmale vorherzusagen. Die wichtigsten Faktoren, die zur Vorhersage beitragen, sind ...
 
 affected: Overall health status.
 hemo: Hemoglobin levels.
@@ -125,9 +147,8 @@ pcv: Packed cell volume.
 stage: Stage of CKD.
 grf: Glomerular filtration rate.
 rbcc: Red blood cell count.
-These findings align with medical knowledge, where hemoglobin levels, packed cell volume, and glomerular filtration rate are significant indicators of kidney function.
+Diese Ergebnisse stimmen mit medizinischem Wissen überein, wonach Hämoglobinspiegel, Hämatokrit und glomeruläre Filtrationsrate bedeutende Indikatoren für die Nierenfunktion sind
 
-Conclusion
-The decision tree model developed in this project accurately classifies patients with CKD based on clinical features. The model's high accuracy suggests it can be a valuable tool for early CKD detection. Future work could involve validating the model on a larger, more diverse dataset and exploring other machine learning algorithms for potentially improved performance.
+## Schlussfolgerungen
 
-This analysis underscores the importance of regular monitoring of kidney function and related clinical parameters in at-risk populations.
+Die hohe Genauigkeit des Modells deutet darauf hin, dass es ein wertvolles Werkzeug für die frühzeitige Erkennung von CKD sein kann. Zukünftige Arbeiten könnten die Validierung des Modells an größeren und vielfältigeren Datensätzen sowie die Exploration anderer Machine-Learning-Algorithmen zur Verbesserung der Leistung umfassen.
