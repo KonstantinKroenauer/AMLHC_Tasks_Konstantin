@@ -41,22 +41,22 @@ Vor der Modellerstellung wurden mehrere Vorverarbeitungsschritte durchgeführt:
   library(e1071)
 
 
-# Read the dataset
+# Datensatz einlesen
 data <- read.csv("ckd-dataset.csv")
 
-# Display the first few rows of the dataset
+# Die ersten Reihen des Datensatzes anzeigen
 head(data)
 
-# Remove rows with missing values
+# Zeilen mit leeren werten entfernen
 data <- na.omit(data)
 
-# Convert all features to factors
+# Alle spalten Faktorisieren
 data <- data %>% mutate(across(everything(), as.factor))
 
-# Remove empty and rare classes
+# Leere oder seltene Klassen entfernen
 data <- data[!data$class %in% c("", "discrete"), ]
 
-# Verify the structure of the dataset
+# Die Struktur des Datensatzes verifizieren
 str(data)
 
 ```
@@ -76,7 +76,7 @@ dataTrain <- data[trainIndex, ]
 dataTest <- data[-trainIndex, ]
 
 
-model <- rpart(class ~ ., data = dataTrain, method = "class")
+model <- rpart(class ~ . - affected - stage, data = dataTrain, method = "class")
 
 # Visualisierung des Entscheidungsbaums
 rpart.plot(model)
@@ -136,6 +136,8 @@ var_importance_df <- data.frame(
 
 
 ```
+
+
 
 ## Interpretation der Ergebnisse
 
